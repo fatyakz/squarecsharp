@@ -142,6 +142,7 @@ while (square[count -1] != limit) {
         }
     }
     loc = 0;
+    // loop, increment, continue
 }
 
 // stop timer, print diagnostics
