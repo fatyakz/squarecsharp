@@ -4,7 +4,7 @@
 int width = 3;
 int height = 3;
 int start = 1;
-int limit = 11;
+int limit = 12;
 
 // init
 int x;
@@ -47,7 +47,10 @@ while (square[count -1] != limit) {
 	square[0]++;
 	iterations++;
 	// check if square has equal columns before continuing
-	if ((square[0] + square[1] + square[2] == square[3] + square[4] + square[5]) && (square[0] + square[1] + square[2] == square[6] + square[7] + square[8]))
+	if ((square[0] + square[1] + square[2] == square[3] + square[4] + square[5]) &&  
+		(square[0] + square[1] + square[2] == square[6] + square[7] + square[8]) &&
+		(square[0] + square[3] + square[6] == square[2] + square[5] + square[8]) 
+		)
 	{
 		// check if square has unique values using function FindUnique(array)
 		var unique = FindUnique(square);
