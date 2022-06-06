@@ -4,7 +4,7 @@
 int width = 3;
 int height = 3;
 int start = 1;
-int limit = 12;
+int limit = 10;
 
 // init
 int x;
@@ -53,7 +53,7 @@ while (square[count -1] != limit) {
 		)
 	{
 		// check if square has unique values using function FindUnique(array)
-		var unique = FindUnique(square);
+		IEnumerable<int> unique = FindUnique(square);
 		if (unique.Count() == count)
 		{
 			// columns
@@ -103,7 +103,10 @@ while (square[count -1] != limit) {
 				}
 
 				// test sums for unique
-				if (sums.Distinct().Count() == 1)
+				// Distinct() appears to be much faster here
+				if (sums.Distinct().Count() == 1) 
+				//unique = FindUnique(sums);
+				//if (unique.Count() == 1)
 				{
 					// WIN! print square, n, progress
 					prx = 0;
@@ -123,9 +126,11 @@ while (square[count -1] != limit) {
 					}
 					pr("n=" + sums[0]);
 					wins++;
-					pr("Solved " + wins.ToString() + " of " + tosolve.ToString() + "\n");
+					int percentComplete = (int)(0.5f + ((100f * wins) / tosolve));
+					pr("Solved " + wins.ToString() + " of " + tosolve.ToString() + "\n" + percentComplete.ToString() + "% \n");
 				}
 			}
+			
 		}
 		// reset sums
 		sums = new int[width + height + 2];
