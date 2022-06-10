@@ -4,7 +4,7 @@
 int width = 3;
 int height = 3;
 int start = 1;
-int limit = 10;
+int limit = 30;
 
 // init
 int x;
@@ -13,14 +13,15 @@ int prx;
 int pry;
 int loc = 0;
 int wins = 0;
-int tosolve;
 int range = limit + start;
 long iterations = 0;
 string buff;
 int count = (width * height);
-// uint total = ((uint)Math.Pow(limit, count));
 int[] square = new int[width * height];
 int[] sums = new int[width + height + 2];
+
+// magic formula n^9-2n^8+n^7 or n^7*(n-1)^2 or n^7*(n^2-2n+1)
+long cycles = (long)Math.Pow(limit,7) * ((limit - 1)*(limit - 1));
 
 // zero out arrays of sums and squares
 for (int i = 0; i < (width * height); i++) { square[i] = start; }
@@ -28,7 +29,7 @@ for (int i = 0; i < (width + height + 2); i++) { sums[i] = 0; }
 
 // calculate how many solves to find, thanks Zaslavsky :)
 var t = range;
-tosolve = (range % 12) switch
+int tosolve = (range % 12) switch
 {
 	0 or 2 or 6 or 8 => ((t * t * t) - 16 * t * t + 76 * t - 96) / 6,
 	1 => ((t * t * t) - 16 * t * t + 73 * t - 58) / 6,
@@ -39,6 +40,27 @@ tosolve = (range % 12) switch
 	_ => 0,
 };
 
+// test code ----------------
+/*
+t = 0;
+while (t < 100)
+{
+	tosolve = (t % 12) switch
+	{
+		0 or 2 or 6 or 8 => ((t * t * t) - 16 * t * t + 76 * t - 96) / 6,
+		1 => ((t * t * t) - 16 * t * t + 73 * t - 58) / 6,
+		3 or 11 => ((t * t * t) - 16 * t * t + 73 * t - 102) / 6,
+		4 or 10 => ((t * t * t) - 16 * t * t + 76 * t - 112) / 6,
+		5 or 9 => ((t * t * t) - 16 * t * t + 73 * t - 90) / 6,
+		7 => ((t * t * t) - 16 * t * t + 73 * t - 70) / 6,
+		_ => 0,
+	};
+	pr(tosolve.ToString());
+	t++;
+}
+*/
+// test code ----------------
+
 // start timer
 var s1 = Stopwatch.StartNew();
 
@@ -46,12 +68,21 @@ var s1 = Stopwatch.StartNew();
 while (square[count -1] != limit) { 
 	square[0]++;
 	iterations++;
+
+	
 	// check if square has equal columns before continuing
 	if ((square[0] + square[1] + square[2] == square[3] + square[4] + square[5]) &&  
 		(square[0] + square[1] + square[2] == square[6] + square[7] + square[8]) &&
 		(square[0] + square[3] + square[6] == square[2] + square[5] + square[8]) 
 		)
-	{
+	
+	/*
+	// alternate test, not as fast
+	if ((square[0] + square[1] + square[2] == square[0] + square[4] + square[8]) &&
+		(square[0] + square[1] + square[2] == square[6] + square[7] + square[8]) &&
+		(square[0] + square[1] + square[2] == square[2] + square[5] + square[8]))
+	*/
+		{
 		// check if square has unique values using function FindUnique(array)
 		IEnumerable<int> unique = FindUnique(square);
 		if (unique.Count() == count)
@@ -72,6 +103,7 @@ while (square[count -1] != limit) {
 			// attempt at breaking before full sums[] is complete [successful]
 			if (sums[0] == sums[1])
 			{
+				
 				// rows
 				x = 0;
 				y = 0;
@@ -101,17 +133,26 @@ while (square[count -1] != limit) {
 					sums[width + height + 1] += square[(width * y) + y];
 					y++;
 				}
+				
 
 				// test sums for unique
 				// Distinct() appears to be much faster here
+
+				// int n = sums.Length / 1;
+				// var dist = countDistinct(square, n);
+
+				
 				if (sums.Distinct().Count() == 1) 
-				//unique = FindUnique(sums);
-				//if (unique.Count() == 1)
+				unique = FindUnique(sums);
+				if (unique.Count() == 1)
 				{
+					// clearing seems to be very slow, but fun on higher solves (>13?)
+					// if (range > 13) { Console.Clear(); }
+
 					// WIN! print square, n, progress
 					prx = 0;
 					pry = 0;
-					buff = "";
+					buff = "				";
 					while (pry < height)
 					{
 						while (prx < width)
@@ -122,15 +163,18 @@ while (square[count -1] != limit) {
 						pr(buff);
 						pry++;
 						prx = 0;
-						buff = "";
+						buff = "				";
 					}
-					pr("n=" + sums[0]);
 					wins++;
 					int percentComplete = (int)(0.5f + ((100f * wins) / tosolve));
-					pr("Solved " + wins.ToString() + " of " + tosolve.ToString() + "\n" + percentComplete.ToString() + "% \n");
+					pr(" n=" + sums[0] + " | Solved " + wins.ToString() + " of " + tosolve.ToString());
+					// progress bar
+					string pleft = new string((char)35, percentComplete / 2);
+					string pright = new string((char)45, 50 - (percentComplete / 2));
+					pr("[" + pleft + pright + "] " + percentComplete.ToString() + "% \n");
 				}
+				
 			}
-			
 		}
 		// reset sums
 		sums = new int[width + height + 2];
@@ -190,4 +234,19 @@ static IEnumerable<int> FindUnique(int[] array)
 		}
 	}
 	return result;
+}
+
+int countDistinct(int[] arr, int n)
+{
+	int res = 1;
+	for (int i = 1; i < n; i++)
+	{
+		int j = 0;
+		for (j = 0; j < i; j++)
+			if (arr[i] == arr[j])
+				break;
+		if (i == j)
+			res++;
+	}
+	return res;
 }
